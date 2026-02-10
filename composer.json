@@ -1,6 +1,6 @@
 {
   "name": "ipwho/ipwho-sdk",
-  "description": "SDK for the IPWho IP Geolocation API by ipwho.org - Get detailed IP geolocation, timezone, connection, and security information with full type safety.",
+  "description": "The official PHP SDK for the IPWho IP Geolocation API by ipwho.org - Get detailed IP geolocation, timezone, connection, and security information with full type safety.",
   "type": "library",
   "license": "MIT",
   "homepage": "https://github.com/lavrox/SDK-IPWho-PHP",
