@@ -1,0 +1,33 @@
+* This file defines attributes for path-based settings in the repository, such as text encoding and merge strategies.
+
+* text=auto
+*.php text
+*.json text
+*.md text
+*.xml text
+*.html text
+*.css text
+*.js text
+*.ts text
+*.scss text
+*.less text
+*.yaml text
+*.yml text
+*.txt text
+*.sh text
+*.bat text
+*.ps1 text
+*.lock text
+*.log text
+*.csv text
+*.xml text
+*.svg text
+*.png text
+*.jpg text
+*.gif text
+*.ico text
+*.woff text
+*.woff2 text
+*.ttf text
+*.eot text
+*.otf text
