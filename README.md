@@ -1,6 +1,6 @@
 # IPWho PHP SDK
 
-PHP SDK for the [IPWho IP Geolocation API by ipwho.org](https://ipwho.org/) - Get detailed IP geolocation, timezone, connection, and security information with full type safety.
+The official PHP SDK for the [IPWho IP Geolocation API by ipwho.org](https://ipwho.org/) - Get detailed IP geolocation, timezone, connection, and security information with full type safety.
 
 ## Installation
 
