@@ -346,51 +346,6 @@ try {
 }
 ```
 
-## Testing
-
-The SDK includes comprehensive unit tests. To run them:
-
-### Prerequisites
-
-```bash
-composer install
-```
-
-### Running Tests
-
-Run all tests:
-```bash
-vendor/bin/phpunit tests/
-```
-
-Run a specific test:
-```bash
-vendor/bin/phpunit tests/ClientTest.php
-```
-
-Run a specific test method:
-```bash
-vendor/bin/phpunit tests/ClientTest.php --filter testClientInstantiationWithApiKey
-```
-
-### Test Coverage
-
-View test coverage:
-```bash
-vendor/bin/phpunit tests/ --coverage-html coverage/
-```
-
-This generates an HTML coverage report in the `coverage/` directory.
-
-## Configuration
-
-### phpunit.xml
-
-The project includes a `phpunit.xml` configuration file for testing. The default configuration:
-- Uses PSR-4 autoloading
-- Targets PHP 8.0+
-- Includes comprehensive bootstrap configuration
-
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
