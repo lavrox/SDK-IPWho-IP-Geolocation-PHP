@@ -1,4 +1,4 @@
-* This file defines attributes for path-based settings in the repository, such as text encoding and merge strategies.
+# Path-based settings (text encoding and merge strategies)
 
 * text=auto
 *.php text
@@ -20,14 +20,4 @@
 *.lock text
 *.log text
 *.csv text
-*.xml text
 *.svg text
-*.png text
-*.jpg text
-*.gif text
-*.ico text
-*.woff text
-*.woff2 text
-*.ttf text
-*.eot text
-*.otf text

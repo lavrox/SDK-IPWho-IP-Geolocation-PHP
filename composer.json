@@ -1,60 +1,27 @@
 {
-  "name": "ipwho/ipwho-ip-geolocation-api",
-  "description": "The official PHP SDK for the IPWho IP Geolocation API by ipwho.org - Get detailed IP geolocation, timezone, connection, and security information with full type safety.",
-  "type": "library",
-  "license": "MIT",
-  "homepage": "https://github.com/lavrox/SDK-IPWho-PHP",
-  "keywords": [
-    "ipwho",
-    "ip-geolocation",
-    "location",
-    "timezone",
-    "security",
-    "vpn-detection",
-    "tor-detection",
-    "isp",
-    "asn",
-    "geolocation-api",
-    "ip-api",
-    "php",
-    "sdk"
-  ],
-  "authors": [
-    {
-      "name": "IPWho SDK Contributors",
-      "email": "info@ipwho.org",
-      "homepage": "https://ipwho.org"
-    }
-  ],
-  "support": {
-    "email": "support@ipwho.org",
-    "issues": "https://github.com/lavrox/SDK-IPWho-PHP/issues",
-    "docs": "https://ipwho.org/docs"
-  },
-  "require": {
-    "php": "^7.4 || ^8.0"
-  },
-  "autoload": {
-    "psr-4": {
-      "SDKIpWho\\": "src/"
+    "name": "ipwho/ipwho-ip-geolocation-api",
+    "description": "Official PHP SDK for the IPWho IP geolocation API (lookup, me, bulk).",
+    "type": "library",
+    "license": "MIT",
+    "homepage": "https://www.ipwho.org",
+    "keywords": ["ipwho", "ip", "geolocation", "geoip"],
+    "authors": [
+        {
+            "name": "IPWho",
+            "homepage": "https://www.ipwho.org"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "ext-json": "*",
+        "guzzlehttp/guzzle": "^7.0"
     },
-    "classmap": [
-      "src/Types.php",
-      "src/Client.php",
-      "src/Index.php"
-    ]
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "SDKIpWho\\Tests\\": "tests/"
+    "autoload": {
+        "psr-4": {
+            "IpWho\\SDK\\": "src/"
+        },
+        "classmap": [
+            "src/Models/"
+        ]
     }
-  },
-  "require-dev": {
-    "phpunit/phpunit": "^9.5"
-  },
-  "scripts": {
-    "test": "phpunit"
-  },
-  "minimum-stability": "stable",
-  "prefer-stable": true
 }

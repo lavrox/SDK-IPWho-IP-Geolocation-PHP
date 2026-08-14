@@ -1,366 +1,214 @@
-# IPWho PHP SDK
+# IPWho ([ipwho.org](https://www.ipwho.org)) PHP SDK
 
-The official PHP SDK for the [IPWho IP Geolocation API by ipwho.org](https://ipwho.org/) - Get detailed IP geolocation, timezone, connection, and security information with full type safety.
+[![packagist version](https://img.shields.io/packagist/v/ipwho/ipwho-ip-geolocation-api?style=flat-square)](https://packagist.org/packages/ipwho/ipwho-ip-geolocation-api) [![license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/lavrox/SDK-IPWho-PHP/blob/main/LICENSE)
+
+Official PHP client for the [IPWho](https://www.ipwho.org) IP Intelligence API. One call returns the **full** payload: geolocation, timezone, flag, currency, connection (ASN/ISP), security (VPN/Tor/threat), and user-agent when present.
+
+- Product: [ipwho.org](https://www.ipwho.org)
+- API docs: [ipwho.org/docs](https://www.ipwho.org/docs)
+- Get an API key: [ipwho.org](https://www.ipwho.org)
+- Live API host: `https://api.ipwho.org`
 
 ## Installation
 
-Install via Composer:
-
 ```bash
-composer install
+composer require ipwho/ipwho-ip-geolocation-api
 ```
 
-Or add to your `composer.json`:
-
-```json
-{
-  "require": {
-    "ipwho/sdk-ipwho-php": "^1.0"
-  }
-}
-```
-
-Then run:
-
-```bash
-composer install
-```
+Requires PHP >= 7.4, `ext-json`, `guzzlehttp/guzzle` ^7.
 
 ## Quick Start
 
 ```php
 <?php
-
 require 'vendor/autoload.php';
 
-use SDKIpWho\Client;
+use IpWho\SDK\Client;
 
-$client = new Client('your-api-key');
+$client = new Client(getenv('IPWHO_API_KEY'));
 
-// Get caller's location (uses your IP by default)
-$location = $client->getLocation();
-print_r($location);
-
-// Get location for a specific IP
-$specificLocation = $client->getLocation('8.8.8.8');
-print_r($specificLocation);
+$res  = $client->lookup('8.8.8.8');                 // GET /ip/{ip}
+$me   = $client->me();                              // GET /me
+$bulk = $client->bulk(['8.8.8.8', '1.1.1.1']);      // GET /bulk/{a,b,c}
 ```
 
-## Authentication
+Every successful JSON call returns `IpWho\SDK\Models\IpGeoResponse`:
 
-Initialize the client with your API key:
-
-```php
-$client = new Client('your-api-key');
+```
+IpGeoResponse
+├── success
+├── message
+└── data  (GeoData)
+    ├── ip
+    ├── geoLocation
+    ├── timezone
+    ├── flag
+    ├── currency
+    ├── connection
+    ├── security
+    ├── userAgent
+    └── responseArray   // bulk only
 ```
 
-Get your API key by signing up [here](https://www.ipwho.org/signup).
+## Reading the full response (8.8.8.8)
 
-The SDK automatically includes your API key in the `X-API-Key` header for all requests. Missing API keys will throw an error immediately.
+Live [IPWho](https://www.ipwho.org) values: United States, ASN 15169, America/Chicago, dial code +1. Nested objects may be `null`.
 
-## Methods
-
-All methods accept an optional `ip` parameter. When omitted, the SDK uses the caller's IP address (calls `/me` endpoint). When provided, it queries the specific IP (calls `/ip/{ip}` endpoint).
-
-### `getLocation(?string $ip = null): ?GeoLocation`
-
-Get geographical location data for an IP address.
-
-**Parameters:**
-- `$ip` (optional) - IP address to query. Defaults to caller's IP if omitted.
-
-**Returns:** `GeoLocation` object or `null` if unavailable.
-
-**Example:**
 ```php
-// Get your own location
-$myLocation = $client->getLocation();
+$res  = $client->lookup('8.8.8.8');
+$data = $res->data;
 
-// Get location for specific IP
-$location = $client->getLocation('1.1.1.1');
+echo $data->ip; // 8.8.8.8
 
-print_r($location);
-// GeoLocation {
-//   continent: "Oceania",
-//   continentCode: "OC",
-//   country: "Australia",
-//   countryCode: "AU",
-//   capital: "Canberra",
-//   region: "Queensland",
-//   regionCode: "QLD",
-//   city: "South Brisbane",
-//   postalCode: "4101",
-//   dialCode: "+61",
-//   isInEu: false,
-//   latitude: -27.4766,
-//   longitude: 153.0166,
-//   accuracyRadius: 500
-// }
+$geo = $data->geoLocation;
+echo $geo->continent, $geo->continentCode; // North America, NA
+echo $geo->country, $geo->countryCode;     // United States, US
+echo $geo->capital, $geo->region, $geo->regionCode, $geo->city;
+echo $geo->postalCode, $geo->dialCode;     // +1
+echo $geo->isInEu ? 'eu' : 'not-eu';
+echo $geo->latitude, $geo->longitude, $geo->accuracyRadius;
+
+$tz = $data->timezone;
+echo $tz->timeZone; // America/Chicago
+echo $tz->abbr, $tz->offset, $tz->isDst, $tz->utc, $tz->currentTime;
+
+echo $data->flag->flagIcon;    // 🇺🇸
+echo $data->flag->flagUnicode; // U+1F1FA U+1F1F8
+
+echo $data->currency->code, $data->currency->symbol, $data->currency->name;
+echo $data->currency->namePlural; // US dollars
+echo $data->currency->hexUnicode;
+
+$conn = $data->connection;
+echo $conn->asnNumber;      // 15169
+echo $conn->asnOrg;         // Google LLC
+echo $conn->isp, $conn->org, $conn->domain;
+echo $conn->connectionType; // Corporate
+
+echo $data->security->isVpn, $data->security->isTor, $data->security->isThreat;
+
+if ($data->userAgent) {
+    echo $data->userAgent->browser->name, $data->userAgent->os->name;
+}
+
+$me = $client->me();
+echo $me->data->ip;
+
+$bulk = $client->bulk(['8.8.8.8', '1.1.1.1']);
+foreach ($bulk->data->responseArray as $item) {
+    echo $item->data->ip, $item->data->geoLocation->country;
+}
 ```
 
-### `getTimezone(?string $ip = null): ?Timezone`
+### Example JSON (mapped fields)
 
-Get timezone information for an IP address.
-
-**Parameters:**
-- `$ip` (optional) - IP address to query. Defaults to caller's IP if omitted.
-
-**Returns:** `Timezone` object or `null` if unavailable.
-
-**Example:**
-```php
-// Get your own timezone
-$myTimezone = $client->getTimezone();
-
-// Get timezone for specific IP
-$timezone = $client->getTimezone('8.8.8.8');
-
-print_r($timezone);
-// Timezone {
-//   timeZone: "America/Los_Angeles",
-//   abbr: "PST",
-//   offset: -28800,
-//   isDst: false,
-//   utc: "-08:00",
-//   currentTime: "2026-02-07T10:30:00-08:00"
-// }
-```
-
-### `getConnection(?string $ip = null): ?Connection`
-
-Get ISP and network connection details for an IP address.
-
-**Parameters:**
-- `$ip` (optional) - IP address to query. Defaults to caller's IP if omitted.
-
-**Returns:** `Connection` object or `null` if unavailable.
-
-**Example:**
-```php
-// Get your own connection details
-$myConnection = $client->getConnection();
-
-// Get connection details for specific IP
-$connection = $client->getConnection('1.1.1.1');
-
-print_r($connection);
-// Connection {
-//   asnNumber: 13335,
-//   asnOrg: "Cloudflare, Inc.",
-//   isp: "Cloudflare",
-//   org: "APNIC Research and Development",
-//   domain: "cloudflare.com",
-//   connectionType: "Data Center/Web Hosting/Transit"
-// }
-```
-
-### `getSecurity(?string $ip = null): ?Security`
-
-Get security information including VPN, Tor, and threat detection.
-
-**Parameters:**
-- `$ip` (optional) - IP address to query. Defaults to caller's IP if omitted.
-
-**Returns:** `Security` object or `null` if unavailable.
-
-**Example:**
-```php
-// Check your own IP security status
-$mySecurity = $client->getSecurity();
-
-// Check security for specific IP
-$security = $client->getSecurity('8.8.8.8');
-
-print_r($security);
-// Security {
-//   isVpn: false,
-//   isTor: false,
-//   isThreat: "low"
-// }
-```
-
-### `getMe(): IPWhoData`
-
-Get complete IP information for the caller's IP address.
-
-**Returns:** Full `IPWhoData` object with all available information.
-
-**Example:**
-```php
-$myData = $client->getMe();
-
-print_r($myData);
-// IPWhoData {
-//   ip: "203.0.113.1",
-//   geoLocation: { ... },
-//   timezone: { ... },
-//   flag: { ... },
-//   currency: { ... },
-//   connection: { ... },
-//   security: { ... },
-//   userAgent: { ... }
-// }
-```
-
-### `getIp(string $ip): IPWhoData`
-
-Get complete IP information for a specific IP address.
-
-**Parameters:**
-- `$ip` (required) - IP address to query.
-
-**Returns:** Full `IPWhoData` object with all available information.
-
-**Example:**
-```php
-$data = $client->getIp('8.8.8.8');
-
-print_r($data);
-// IPWhoData {
-//   ip: "8.8.8.8",
-//   geoLocation: { ... },
-//   timezone: { ... },
-//   flag: { ... },
-//   currency: { ... },
-//   connection: { ... },
-//   security: { ... }
-// }
-```
-
-## Type Classes
-
-The SDK provides full type classes for all responses:
-
-### `GeoLocation`
-```php
+```json
 {
-    continent: string;           // Continent name
-    continentCode: string;       // Continent code
-    country: string;             // Country name
-    countryCode: string;         // ISO 3166-1 alpha-2 country code
-    capital: ?string;            // Capital city name
-    region: ?string;             // Region name
-    regionCode: ?string;         // Region code
-    city: ?string;               // City name
-    postalCode: ?string;         // Postal code
-    dialCode: ?string;           // International dial code
-    isInEu: ?bool;               // Is in European Union
-    latitude: ?float;            // Latitude coordinate
-    longitude: ?float;           // Longitude coordinate
-    accuracyRadius: ?int;        // Accuracy radius in kilometers
+  "success": true,
+  "data": {
+    "ip": "8.8.8.8",
+    "geoLocation": {
+      "continent": "North America",
+      "continentCode": "NA",
+      "country": "United States",
+      "countryCode": "US",
+      "dialCode": "+1",
+      "isInEu": false,
+      "accuracyRadius": 1000
+    },
+    "timezone": { "timeZone": "America/Chicago" },
+    "flag": { "flagIcon": "🇺🇸", "flagUnicode": "U+1F1FA U+1F1F8" },
+    "currency": { "code": "USD", "namePlural": "US dollars" },
+    "connection": {
+      "asnNumber": 15169,
+      "asnOrg": "Google LLC",
+      "connectionType": "Corporate"
+    },
+    "security": { "isVpn": false, "isTor": false, "isThreat": "low" }
+  }
 }
 ```
 
-### `Timezone`
-```php
-{
-    timeZone: string;            // IANA timezone identifier
-    abbr: ?string;               // Timezone abbreviation
-    offset: ?int;                // UTC offset in seconds
-    isDst: ?bool;                // Is in daylight saving time
-    utc: ?string;                // UTC offset string
-    currentTime: ?string;        // Current time in ISO 8601 format
-}
+## Migrating from v1
+
+| v1 | v2 |
+|----|----|
+| `getIp` / `getLocation($ip)` | `lookup($ip)` then `$res->data->geoLocation` |
+| `getMe` / `getLocation()` | `me()` |
+| `getTimezone` / `getConnection` / `getSecurity` | nested on `$res->data` |
+| *(missing)* | `bulk($ips)` |
+
+Client is `IpWho\SDK\Client` (was `SDKIpWho\Client`).
+
+## API Reference
+
+### `new Client(string $apiKey, array $options = [], ?HttpClient $httpClient = null)`
+
+Key is required (query `apiKey`). `$options['baseUrl']` default `https://api.ipwho.org`. `$options['timeout']` default `30`.
+
+### `lookup(string $ip, array $options = []): IpGeoResponse`
+
+`$options['format']`: json|xml|csv. `$options['get']`: field filter.
+
+### `me(array $options = []): IpGeoResponse`
+
+### `bulk(array $ips): IpGeoResponse`
+
+Results on `$res->data->responseArray`.
+
+### Errors
+
+`InvalidIPException` (404), `RateLimitException` (429), `APIResponseException`.
+
+## Type Definitions
+
+Public properties:
+
+- **GeoLocation**: `continent`, `continentCode`, `country`, `countryCode`, `capital`, `region`, `regionCode`, `city`, `postalCode`, `dialCode`, `isInEu`, `latitude`, `longitude`, `accuracyRadius`
+- **Timezone**: `timeZone`, `abbr`, `offset`, `isDst`, `utc`, `currentTime`
+- **Flag**: `flagIcon`, `flagUnicode`
+- **Currency**: `code`, `symbol`, `name`, `namePlural`, `hexUnicode`
+- **Connection**: `asnNumber`, `asnOrg`, `isp`, `org`, `domain`, `connectionType`
+- **Security**: `isVpn`, `isTor`, `isThreat` (`low`|`medium`|`high`)
+- **UserAgent**: `browser`, `engine`, `os`, `device`, `cpu` (each has `name`/`version` or `type`/`vendor`/`model` / `architecture`)
+- **GeoData**: `ip` plus all of the above plus `responseArray`
+- **IpGeoResponse**: `success`, `data`, `message`
+
+Wire JSON mixes casings (`postal_Code`, `flag_Icon`, `isVpn`); the SDK maps them onto these properties.
+
+## Troubleshooting
+
+- Empty key → `APIResponseException`. Get a key at [ipwho.org](https://www.ipwho.org).
+- HTTP 403: SDK sends `ipwho-php-sdk/1.0.0`.
+- HTTP 429 / 404: `RateLimitException` / `InvalidIPException`.
+- Null nested objects on some IPs (city, user-agent).
+
+## Testing
+
+```bash
+IPWHO_API_KEY=your_key php test_ipwho.php
 ```
 
-### `Connection`
-```php
-{
-    asnNumber: ?int;                // Autonomous System Number
-    asnOrg: ?string;                // ASN organization name
-    isp: ?string;                   // Internet Service Provider
-    org: ?string;                   // Organization name
-    domain: ?string;                // Domain name
-    connectionType: ?string;        // Connection type description
-}
-```
+The live check is `test_ipwho.php`.
 
-### `Security`
-```php
-{
-    isVpn: ?bool;              // Whether IP is using VPN
-    isTor: ?bool;              // Whether IP is Tor exit node
-    isThreat: ?string;         // Threat level: "low", "medium", "high"
-}
-```
+## Changelog
 
-### `Currency`
-```php
-{
-    code: string;              // Currency code (ISO 4217)
-    symbol: string;            // Currency symbol
-    name: string;              // Currency name
-    namePlural: ?string;       // Plural form of currency name
-    hexUnicode: ?string;       // Hex unicode for symbol
-}
-```
+### v2.0.0
 
-### `Flag`
-```php
-{
-    flagIcon: string;          // URL to flag icon
-    flagUnicode: string;       // Unicode flag emoji
-}
-```
-
-### `UserAgent`
-```php
-{
-    browser: BrowserInfo;      // Browser information
-    engine: EngineInfo;        // Engine information
-    os: OSInfo;                // Operating system information
-    device: DeviceInfo;        // Device information
-    cpu: CPUInfo;              // CPU information
-}
-```
-
-### `IPWhoData`
-Full response object containing all available data:
-```php
-{
-    ip: string;                // IP address
-    geoLocation: ?GeoLocation; // Geolocation information
-    timezone: ?Timezone;       // Timezone information
-    flag: ?Flag;               // Flag information
-    currency: ?Currency;       // Currency information
-    connection: ?Connection;   // Connection information
-    userAgent: ?UserAgent;     // User agent information (if available)
-    security: ?Security;       // Security information
-}
-```
-
-## Error Handling
-
-The SDK throws exceptions for:
-- Missing API key during initialization
-- Failed API requests
-- Invalid API responses
-
-**Example:**
-```php
-try {
-    $client = new Client('your-api-key');
-    $location = $client->getLocation('8.8.8.8');
-} catch (\Exception $e) {
-    echo "Error: " . $e->getMessage();
-}
-```
+- `lookup` / `me` / `bulk` matching [api.ipwho.org](https://api.ipwho.org)
+- Full `IpGeoResponse` instead of v1 getters
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
-
-## Contributing
-
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+MIT License — see [LICENSE](LICENSE).
 
 ## Support
 
-For issues, feature requests, or questions, please visit:
-- [GitHub Issues](https://github.com/lavrox/SDK-IPWho-PHP/issues)
-- [IPWho Documentation](https://ipwho.org/docs)
+- Documentation: [ipwho.org/docs](https://www.ipwho.org/docs)
+- Contact: [ipwho.org/contact](https://www.ipwho.org/contact)
+- GitHub Issues: [lavrox/SDK-IPWho-PHP](https://github.com/lavrox/SDK-IPWho-PHP/issues)
+- Website: [ipwho.org](https://www.ipwho.org)
+
+---
+
+Product by [lavrox.com](https://lavrox.com)
