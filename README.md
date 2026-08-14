@@ -2,12 +2,16 @@
 
 [![packagist version](https://img.shields.io/packagist/v/ipwho/ipwho-ip-geolocation-api?style=flat-square)](https://packagist.org/packages/ipwho/ipwho-ip-geolocation-api) [![license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/lavrox/SDK-IPWho-PHP/blob/main/LICENSE)
 
-Official PHP client for the [IPWho](https://www.ipwho.org) IP Intelligence API. One call returns the **full** payload: geolocation, timezone, flag, currency, connection (ASN/ISP), security (VPN/Tor/threat), and user-agent when present.
+Official PHP client for the [IPWho](https://www.ipwho.org) IP Geolocation API. One call returns the **full** payload: geolocation, timezone, flag, currency, connection (ASN/ISP), security (VPN/Tor/threat), and user-agent when present.
 
 - Product: [ipwho.org](https://www.ipwho.org)
 - API docs: [ipwho.org/docs](https://www.ipwho.org/docs)
-- Get an API key: [ipwho.org](https://www.ipwho.org)
+- Get an API key: [ipwho.org/free-plan](https://www.ipwho.org/free-plan) (free [Lavrox](https://lavrox.com) account)
 - Live API host: `https://api.ipwho.org`
+
+## API key
+
+Open a free [Lavrox](https://lavrox.com) account to get an API key for [IPWho](https://www.ipwho.org). Create your key at [ipwho.org/free-plan](https://www.ipwho.org/free-plan) — no credit card required.
 
 ## Installation
 
@@ -211,4 +215,6 @@ MIT License — see [LICENSE](LICENSE).
 
 ---
 
-Product by [lavrox.com](https://lavrox.com)
+[IPWho](https://www.ipwho.org) — a [Lavrox](https://lavrox.com) network API.
+
+[Lavrox](https://lavrox.com) — Independent API infrastructure. Lower latency, lower cost.
