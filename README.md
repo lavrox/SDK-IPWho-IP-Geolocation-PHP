@@ -1,6 +1,6 @@
 # IPWho ([ipwho.org](https://www.ipwho.org)) PHP SDK
 
-[![packagist version](https://img.shields.io/packagist/v/ipwho/ipwho-ip-geolocation-api?style=flat-square)](https://packagist.org/packages/ipwho/ipwho-ip-geolocation-api) [![license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/lavrox/SDK-IPWho-PHP/blob/main/LICENSE)
+[![packagist version](https://img.shields.io/packagist/v/ipwho/ipwho-ip-geolocation-api?style=flat-square)](https://packagist.org/packages/ipwho/ipwho-ip-geolocation-api) [![license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/lavrox/SDK-IPWho-IP-Geolocation-PHP/blob/main/LICENSE)
 
 Official PHP client for the [IPWho](https://www.ipwho.org) IP Geolocation API. One call returns the **full** payload: geolocation, timezone, flag, currency, connection (ASN/ISP), security (VPN/Tor/threat), and user-agent when present.
 
@@ -210,7 +210,7 @@ MIT License — see [LICENSE](LICENSE).
 
 - Documentation: [ipwho.org/docs](https://www.ipwho.org/docs)
 - Contact: [ipwho.org/contact](https://www.ipwho.org/contact)
-- GitHub Issues: [lavrox/SDK-IPWho-PHP](https://github.com/lavrox/SDK-IPWho-PHP/issues)
+- GitHub Issues: [lavrox/SDK-IPWho-IP-Geolocation-PHP](https://github.com/lavrox/SDK-IPWho-IP-Geolocation-PHP/issues)
 - Website: [ipwho.org](https://www.ipwho.org)
 
 ---
