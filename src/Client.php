@@ -4,6 +4,7 @@ namespace IpWho\SDK;
 
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
 use IpWho\SDK\Exception\APIResponseException;
 use IpWho\SDK\Exception\InvalidIPException;
 use IpWho\SDK\Exception\RateLimitException;
@@ -31,8 +32,14 @@ class Client
      */
     public function __construct(string $apiKey, array $options = [], ?HttpClient $httpClient = null)
     {
-        if (empty($apiKey)) {
+        $apiKey = trim($apiKey);
+        if ($apiKey === '') {
             throw new APIResponseException('apiKey is required');
+        }
+        // The key is sent in a header. Reject it here, without repeating it,
+        // rather than let the HTTP library quote it in an error message.
+        if (preg_match('/[^\x20-\x7e]/', $apiKey)) {
+            throw new APIResponseException('apiKey contains characters that are not allowed');
         }
         $this->apiKey  = $apiKey;
         $this->baseUrl = rtrim($options['baseUrl'] ?? self::DEFAULT_BASE_URL, '/');
@@ -85,7 +92,9 @@ class Client
      * Batch-lookup multiple IP addresses.
      *
      * @param string[] $ips  List of IPv4 or IPv6 addresses.
-     * @return IpGeoResponse  Response with data.responseArray of IpGeoResponse.
+     * @return IpGeoResponse  Response with data.responseArray of IpGeoResponse, one per
+     *                        address. Check each row's success. A failed row has a
+     *                        message, and its data holds only the ip.
      * @throws APIResponseException
      */
     public function bulk(array $ips): IpGeoResponse
@@ -94,18 +103,18 @@ class Client
             throw new APIResponseException('ips must not be empty');
         }
         $bulkParam = implode(',', $ips);
-        $params = ['apiKey' => $this->apiKey];
-        return $this->get('/bulk/' . rawurlencode($bulkParam), $params, 'json');
+        return $this->get('/bulk/' . rawurlencode($bulkParam), [], 'json');
     }
 
     // ── internal ────────────────────────────────────────────────────
 
     /**
      * Build query params for lookup/me endpoints.
+     * The API key is not a query parameter: it is sent in a request header.
      */
     private function buildParams(array $options): array
     {
-        $params = ['apiKey' => $this->apiKey];
+        $params = [];
         $format = $options['format'] ?? 'json';
         if ($format !== 'json') {
             $params['format'] = $format;
@@ -122,9 +131,14 @@ class Client
     private function get(string $path, array $params, string $format): IpGeoResponse
     {
         try {
-            $response = $this->http->request('GET', $path, ['query' => $params]);
+            // Set per request, so it also applies to an injected client.
+            $response = $this->http->request('GET', $path, [
+                'query'   => $params,
+                'headers' => ['Authorization' => 'Bearer ' . $this->apiKey],
+            ]);
         } catch (GuzzleException $e) {
-            if ($e->hasResponse()) {
+            // A connection failure (ConnectException) has no hasResponse() method.
+            if ($e instanceof RequestException && $e->hasResponse()) {
                 $statusCode = $e->getResponse()->getStatusCode();
                 $msg = $this->errorMessage($e->getResponse()->getBody()->getContents());
                 if ($statusCode === 404) {

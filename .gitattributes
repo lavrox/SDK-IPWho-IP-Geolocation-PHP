@@ -21,3 +21,7 @@
 *.log text
 *.csv text
 *.svg text
+
+# Keep tests and CI files out of the Composer download
+/tests export-ignore
+/.github export-ignore
