@@ -146,6 +146,7 @@ foreach ($bulk->data->responseArray as $row) {
 |----|----|
 | `getIp` / `getLocation($ip)` | `lookup($ip)` then `$res->data->geoLocation` |
 | `getMe` / `getLocation()` | `me()` |
+| `getTimezone` / `getConnection` / `getSecurity` | nested on `$res->data` |
 
 Client is `IpWho\SDK\Client` (was `SDKIpWho\Client`).
 
