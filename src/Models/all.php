@@ -356,7 +356,7 @@ class GeoData
 
     public function toArray(): array
     {
-        return [
+        $array = [
             'ip'          => $this->ip,
             'geoLocation' => $this->geoLocation ? $this->geoLocation->toArray() : null,
             'timezone'    => $this->timezone ? $this->timezone->toArray() : null,
@@ -366,6 +366,15 @@ class GeoData
             'security'    => $this->security ? $this->security->toArray() : null,
             'userAgent'   => $this->userAgent ? $this->userAgent->toArray() : null,
         ];
+        if ($this->responseArray !== null) {
+            $array['responseArray'] = array_map(
+                static function (IpGeoResponse $row): array {
+                    return $row->toArray();
+                },
+                $this->responseArray
+            );
+        }
+        return $array;
     }
 }
 
@@ -402,12 +411,25 @@ class IpGeoResponse
         // Bulk response: normalise responseArray
         if (isset($data['data']['responseArray']) && is_array($data['data']['responseArray'])) {
             $wrapped = [];
-            foreach ($data['data']['responseArray'] as $item) {
-                $wrapped[] = self::fromArray($item);
+            foreach ($data['data']['responseArray'] as $row) {
+                $wrapped[] = self::fromBulkRow($row);
             }
             $data['data']['responseArray'] = $wrapped;
         }
         return new self($data);
+    }
+
+    /**
+     * Build one bulk result. The API sends bulk rows flat:
+     * {success, ip, geoLocation, ...} or {success: false, ip, message}.
+     */
+    private static function fromBulkRow(array $row): self
+    {
+        return new self([
+            'success' => $row['success'] ?? false,
+            'data'    => $row,
+            'message' => $row['message'] ?? null,
+        ]);
     }
 }
 

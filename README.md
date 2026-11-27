@@ -54,6 +54,8 @@ IpGeoResponse
     └── responseArray   // bulk only
 ```
 
+The client sends your API key in the `Authorization` header, so it isn't part of the request URL.
+
 ## Reading the full response (8.8.8.8)
 
 Live [IPWho](https://www.ipwho.org) values: United States, ASN 15169, America/Chicago, dial code +1. Nested objects may be `null`.
@@ -79,9 +81,10 @@ echo $tz->abbr, $tz->offset, $tz->isDst, $tz->utc, $tz->currentTime;
 echo $data->flag->flagIcon;    // 🇺🇸
 echo $data->flag->flagUnicode; // U+1F1FA U+1F1F8
 
-echo $data->currency->code, $data->currency->symbol, $data->currency->name;
-echo $data->currency->namePlural; // US dollars
-echo $data->currency->hexUnicode;
+if ($data->currency) {                 // null for some addresses, such as 1.1.1.1
+    echo $data->currency->code, $data->currency->symbol, $data->currency->name;
+    echo $data->currency->namePlural;  // US dollars
+}
 
 $conn = $data->connection;
 echo $conn->asnNumber;      // 15169
@@ -99,8 +102,12 @@ $me = $client->me();
 echo $me->data->ip;
 
 $bulk = $client->bulk(['8.8.8.8', '1.1.1.1']);
-foreach ($bulk->data->responseArray as $item) {
-    echo $item->data->ip, $item->data->geoLocation->country;
+foreach ($bulk->data->responseArray as $row) {
+    if ($row->success) {
+        echo $row->data->ip, ' ', $row->data->geoLocation->country, PHP_EOL;
+    } else {
+        echo $row->data->ip, ' ', $row->message, PHP_EOL;
+    }
 }
 ```
 
@@ -139,8 +146,6 @@ foreach ($bulk->data->responseArray as $item) {
 |----|----|
 | `getIp` / `getLocation($ip)` | `lookup($ip)` then `$res->data->geoLocation` |
 | `getMe` / `getLocation()` | `me()` |
-| `getTimezone` / `getConnection` / `getSecurity` | nested on `$res->data` |
-| *(missing)* | `bulk($ips)` |
 
 Client is `IpWho\SDK\Client` (was `SDKIpWho\Client`).
 
@@ -148,7 +153,7 @@ Client is `IpWho\SDK\Client` (was `SDKIpWho\Client`).
 
 ### `new Client(string $apiKey, array $options = [], ?HttpClient $httpClient = null)`
 
-Key is required (query `apiKey`). `$options['baseUrl']` default `https://api.ipwho.org`. `$options['timeout']` default `30`.
+Key is required. It is sent as `Authorization: Bearer`. `$options['baseUrl']` default `https://api.ipwho.org`. `$options['timeout']` default `30`.
 
 ### `lookup(string $ip, array $options = []): IpGeoResponse`
 
@@ -158,7 +163,7 @@ Key is required (query `apiKey`). `$options['baseUrl']` default `https://api.ipw
 
 ### `bulk(array $ips): IpGeoResponse`
 
-Results on `$res->data->responseArray`.
+Results on `$res->data->responseArray`, one `IpGeoResponse` per address. Check each row's `success`. A failed row has a `message`, and its `data` holds only the `ip`.
 
 ### Errors
 
@@ -190,10 +195,15 @@ Wire JSON mixes casings (`postal_Code`, `flag_Icon`, `isVpn`); the SDK maps them
 ## Testing
 
 ```bash
-IPWHO_API_KEY=your_key php test_ipwho.php
+composer install
+composer test
 ```
 
-The live check is `test_ipwho.php`.
+These tests need no API key: they run against a local stand-in server. For a live check, which uses lookups from your quota:
+
+```bash
+IPWHO_API_KEY=your_key php test_ipwho.php
+```
 
 ## Changelog
 

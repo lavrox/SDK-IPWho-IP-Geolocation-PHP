@@ -16,6 +16,12 @@
         "ext-json": "*",
         "guzzlehttp/guzzle": "^7.0"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6"
+    },
+    "scripts": {
+        "test": "phpunit --colors=never tests"
+    },
     "autoload": {
         "psr-4": {
             "IpWho\\SDK\\": "src/"
