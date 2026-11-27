@@ -107,6 +107,25 @@ final class ClientTest extends TestCase
         $this->assertSame('Bearer ' . self::KEY, $this->requests()[0]['authorization']);
     }
 
+    public function testKeyWithSurroundingWhitespaceIsTrimmed(): void
+    {
+        (new Client('  ' . self::KEY . "\n", ['baseUrl' => self::$url]))->lookup('8.8.8.8');
+        $this->assertSame('Bearer ' . self::KEY, $this->requests()[0]['authorization']);
+    }
+
+    public function testKeyWithInvalidCharactersIsRejectedWithoutRepeatingIt(): void
+    {
+        try {
+            new Client("sk.secret_part\nmore");
+            $this->fail('Expected an exception.');
+        } catch (APIResponseException $e) {
+            $this->assertStringNotContainsString('secret_part', $e->getMessage());
+        }
+        $this->expectException(APIResponseException::class);
+        $this->expectExceptionMessage('apiKey is required');
+        new Client("  \n");
+    }
+
     public function testLookupMapsTheResponse(): void
     {
         $data = $this->client()->lookup('8.8.8.8')->data;

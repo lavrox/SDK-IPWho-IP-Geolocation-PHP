@@ -32,8 +32,14 @@ class Client
      */
     public function __construct(string $apiKey, array $options = [], ?HttpClient $httpClient = null)
     {
-        if (empty($apiKey)) {
+        $apiKey = trim($apiKey);
+        if ($apiKey === '') {
             throw new APIResponseException('apiKey is required');
+        }
+        // The key is sent in a header. Reject it here, without repeating it,
+        // rather than let the HTTP library quote it in an error message.
+        if (preg_match('/[^\x20-\x7e]/', $apiKey)) {
+            throw new APIResponseException('apiKey contains characters that are not allowed');
         }
         $this->apiKey  = $apiKey;
         $this->baseUrl = rtrim($options['baseUrl'] ?? self::DEFAULT_BASE_URL, '/');
